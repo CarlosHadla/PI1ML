@@ -108,6 +108,12 @@ app = FastAPI(
     description="Esta api es creada con la intención de que se pueda obtener a traves de metodos de solicitud HTTP diferentes contenidos de nuestros dataframes de steam games",
     version="1.0.0"
     )
+
+# Ruta principal para obtener información de la API
+@app.get("/")
+def read_root():
+    return {"message": "Bienvenido a tu API FastAPI"}
+
 @app.get("/playtime-genre/{genero}")
 async def PlayTimeGenre(genero: str):
     """

@@ -1,12 +1,14 @@
 #CARGAMOS LIBRERIAS
 from fastapi import FastAPI
 import pandas as pd
+from sklearn.metrics.pairwise import cosine_similarity
+
 
 df_items = pd.read_csv('./items.csv')
 df_reviews = pd.read_csv('./reviews_sentiment_analysis.csv')
 df_genres = pd.read_csv('./games_genres.csv')
 df_games = pd.read_csv('./gamesNoGS.csv', parse_dates=['release_date'])
-
+df_ml = pd.merge(df_games, df_genres, on='id')
 
 app = FastAPI(
     title="Steam Games Api",
@@ -137,6 +139,18 @@ async def sentiment_analysis(anio: int):
     'Positive': int(sentiment_counts.get(2, 0))
 }
     return result
+
+@app.get("/sentiment-analysis/{id_producto}")
+async def recomendacion_juego(id_producto, num_recomendaciones=5):
+    # Obtener el vector de géneros del juego de entrada
+    juego_vector = df_ml[df_ml['id'] == id_producto].iloc[:, 3:].values.reshape(1, -1)
+    # Calcular la similitud del coseno entre el juego de entrada y todos los demás juegos
+    similarity_scores = cosine_similarity(df_ml.iloc[:, 3:], juego_vector)
+    # Obtener los índices de los juegos más similares
+    similar_indices = similarity_scores.argsort(axis=0)[::-1][:num_recomendaciones]
+    # Obtener los nombres de los juegos recomendados
+    recomendaciones = df_ml.iloc[similar_indices.ravel(), :]['app_name'].values.tolist()
+    return recomendaciones
 
 if __name__ == "__main__":
     import uvicorn

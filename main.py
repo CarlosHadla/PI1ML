@@ -7,7 +7,22 @@ df_items = pd.read_csv('./items.csv')
 df_reviews = pd.read_csv('./reviews_sentiment_analysis.csv')
 df_genres = pd.read_csv('./games_genres.csv')
 
-def PlayTime_Genre(genero: str):
+app = FastAPI(
+    title="Steam Games Api",
+    description="Esta api es creada con la intención de que se pueda obtener a traves de metodos de solicitud HTTP diferentes contenidos de nuestros dataframes de steam games",
+    version="1.0.0"
+    )
+
+# Ruta principal para obtener información de la API
+@app.get("/")
+def read_root():
+    return {"message": "Bienvenido a tu API FastAPI"}
+
+@app.get("/playtime-genre/{genero}")
+async def PlayTimeGenre(genero: str):
+    """
+    Devuelve el año con más horas jugadas para un género específico.
+    """
     if genero not in df_genres.columns:
         no_Genre = ['El genero solicitado no esta presente en los datos']
         return no_Genre
@@ -23,7 +38,13 @@ def PlayTime_Genre(genero: str):
     year_with_most_playtime = playtime_by_year.idxmax().item()  # Convierte a tipo de dato nativo
     return year_with_most_playtime
 
-def user_for_genre(genero: str):
+
+@app.get("/user-for-genre/{genero}")
+async def UserForGenre(genero: str):
+    """
+    Devuelve el usuario que ha acumulado más horas jugadas para un género dado,
+    junto con una lista de la acumulación de horas jugadas por año.
+    """
     if genero not in df_genres.columns:
         no_Genre = ['El genero solicitado no esta presente en los datos']
         return no_Genre
@@ -50,7 +71,12 @@ def user_for_genre(genero: str):
     }
     return result
 
-def users_recommend(anio: int):
+@app.get("/users-recommend/{anio}")
+async def UsersRecommend(anio: int):
+    """
+    Devuelve el top 3 de juegos MÁS recomendados por usuarios para el año dado,
+    considerando revisiones con recomendación positiva o neutral.
+    """
     if anio not in df_reviews['posted'].values:
         no_anio = ['No hay reviews del año solicitado']
         return no_anio
@@ -68,7 +94,12 @@ def users_recommend(anio: int):
     recommended_games = [{"Puesto {}: {}".format(index + 1, game)} for index, game in enumerate(top_games['app_name'])]
     return recommended_games
 
-def users_not_recommend(anio: int):
+@app.get("/users-not-recommend/{anio}")
+async def UsersNotRecommend(anio: int):
+    """
+    Devuelve el top 3 de juegos MENOS recomendados por usuarios para el año dado,
+    considerando revisiones con recomendación negativa.
+    """
     if anio not in df_reviews['posted'].values:
         no_anio = ['No hay reviews del año solicitado']
         return no_anio
@@ -86,7 +117,12 @@ def users_not_recommend(anio: int):
     recommended_games = [{"Puesto {}: {}".format(index + 1, game)} for index, game in enumerate(top_games['app_name'])]
     return recommended_games
 
-def sentimentAnalysis(año: int):
+@app.get("/sentiment-analysis/{anio}")
+async def sentiment_analysis(anio: int):
+    """
+    Devuelve la cantidad de registros de reseñas de usuarios categorizados con
+    un análisis de sentimiento para un año de lanzamiento específico.
+    """
     # Filtrar los juegos del año deseado en df_games
     filtered_games = df_games[df_games['release_date'].dt.year == año]
     # Obtener los ID de los juegos del año deseado
@@ -102,56 +138,6 @@ def sentimentAnalysis(año: int):
     'Positive': int(sentiment_counts.get(2, 0))
 }
     return result
-
-app = FastAPI(
-    title="Steam Games Api",
-    description="Esta api es creada con la intención de que se pueda obtener a traves de metodos de solicitud HTTP diferentes contenidos de nuestros dataframes de steam games",
-    version="1.0.0"
-    )
-
-# Ruta principal para obtener información de la API
-@app.get("/")
-def read_root():
-    return {"message": "Bienvenido a tu API FastAPI"}
-
-@app.get("/playtime-genre/{genero}")
-async def PlayTimeGenre(genero: str):
-    """
-    Devuelve el año con más horas jugadas para un género específico.
-    """
-    return PlayTime_Genre(genero)
-
-@app.get("/user-for-genre/{genero}")
-async def UserForGenre(genero: str):
-    """
-    Devuelve el usuario que ha acumulado más horas jugadas para un género dado,
-    junto con una lista de la acumulación de horas jugadas por año.
-    """
-    return user_for_genre(genero)
-
-@app.get("/users-recommend/{anio}")
-async def UsersRecommend(anio: int):
-    """
-    Devuelve el top 3 de juegos MÁS recomendados por usuarios para el año dado,
-    considerando revisiones con recomendación positiva o neutral.
-    """
-    return users_recommend(anio)
-
-@app.get("/users-not-recommend/{anio}")
-async def UsersNotRecommend(anio: int):
-    """
-    Devuelve el top 3 de juegos MENOS recomendados por usuarios para el año dado,
-    considerando revisiones con recomendación negativa.
-    """
-    return users_not_recommend(anio)
-
-@app.get("/sentiment-analysis/{anio}")
-async def sentiment_analysis(anio: int):
-    """
-    Devuelve la cantidad de registros de reseñas de usuarios categorizados con
-    un análisis de sentimiento para un año de lanzamiento específico.
-    """
-    return sentimentAnalysis(anio)
 
 if __name__ == "__main__":
     import uvicorn

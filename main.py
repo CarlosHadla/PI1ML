@@ -2,26 +2,42 @@
 from fastapi import FastAPI
 import pandas as pd
 
+Games_Genres_Price_df = pd.read_csv('./Games_Genres_Price_df.csv', parse_dates=['release_date'])
 df_games = pd.read_csv('./gamesNoGS.csv', parse_dates=['release_date'])
 df_items = pd.read_csv('./items.csv')
 df_reviews = pd.read_csv('./reviews_sentiment_analysis.csv')
 df_genres = pd.read_csv('./games_genres.csv')
 
+
 def PlayTime_Genre(genero: str):
-    if genero not in df_genres.columns:
-        no_Genre = ['El genero solicitado no esta presente en los datos']
-        return no_Genre
-    # Realizar un inner join entre df_genres y df_items usando 'id' como clave
-    merged_df = df_genres.merge(df_items, left_on='id', right_on='item_id', how='inner')
-    # Filtrar por el género deseado
+    # Verificar si el género está presente en las columnas de géneros
+    if genero not in Games_Genres_Price_df.columns:
+        return 'El género solicitado no está presente en los datos'
+    # Realizar un inner join entre Games_Genres_Price_df y df_items usando 'id' como clave
+    merged_df = Games_Genres_Price_df.merge(df_items, left_on='id', right_on='item_id', how='inner')
+    # Filtrar el DataFrame combinado por el género deseado
     filtered_df = merged_df[merged_df[genero] == 1]
-    # Realizar otro inner join con df_games usando 'id' como clave
-    final_df = filtered_df.merge(df_games, on='id', how='inner')
     # Calcular la suma de las horas jugadas por año
-    playtime_by_year = final_df.groupby(final_df['release_date'].dt.year)['playtime_forever'].sum()
+    playtime_by_year = filtered_df.groupby(filtered_df['release_date'].dt.year)['playtime_forever'].sum()
     # Encontrar el año con más horas jugadas
     year_with_most_playtime = playtime_by_year.idxmax().item()  # Convierte a tipo de dato nativo
     return year_with_most_playtime
+
+# def PlayTime_Genre(genero: str):
+#     if genero not in df_genres.columns:
+#         no_Genre = ['El genero solicitado no esta presente en los datos']
+#         return no_Genre
+#     # Realizar un inner join entre df_genres y df_items usando 'id' como clave
+#     merged_df = df_genres.merge(df_items, left_on='id', right_on='item_id', how='inner')
+#     # Filtrar por el género deseado
+#     filtered_df = merged_df[merged_df[genero] == 1]
+#     # Realizar otro inner join con df_games usando 'id' como clave
+#     final_df = filtered_df.merge(df_games, on='id', how='inner')
+#     # Calcular la suma de las horas jugadas por año
+#     playtime_by_year = final_df.groupby(final_df['release_date'].dt.year)['playtime_forever'].sum()
+#     # Encontrar el año con más horas jugadas
+#     year_with_most_playtime = playtime_by_year.idxmax().item()  # Convierte a tipo de dato nativo
+#     return year_with_most_playtime
 
 def user_for_genre(genero: str):
     if genero not in df_genres.columns:

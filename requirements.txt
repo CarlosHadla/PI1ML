@@ -55,6 +55,6 @@ typing_extensions==4.7.1
 tzdata==2023.3
 uritemplate==4.1.1
 urllib3==1.26.16
-uvicorn==0.23.2
+uvicorn
 virtualenv==20.23.1
 virtualenv-clone==0.5.7

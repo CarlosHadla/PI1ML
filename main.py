@@ -5,7 +5,7 @@ import pandas as pd
 df_items = pd.read_csv('./items.csv')
 df_reviews = pd.read_csv('./reviews_sentiment_analysis.csv')
 df_genres = pd.read_csv('./games_genres.csv')
-df_games = pd.read_csv('./games.csv', parse_dates=['release_date'])
+df_games = pd.read_csv('./gamesNoGS.csv', parse_dates=['release_date'])
 
 
 app = FastAPI(
@@ -18,31 +18,6 @@ app = FastAPI(
 @app.get("/")
 def read_root():
     return {"message": "Bienvenido a tu API FastAPI"}
-
-@app.get("/playtime-genre2/{genero}")
-async def PlayTimeGenre2(genero: str):
-    """
-    Devuelve el año con más horas jugadas para un género específico.
-    """
-    # Función lambda para verificar si el género está presente en cada lista de géneros
-    # Función lambda para reemplazar NaN con una lista vacía
-    df_games['genres'] = df_games['genres'].apply(lambda x: [] if pd.isna(x) else x)
-    df_games[genero] = df_games['genres'].apply(lambda x: genero in x)
-
-    # Filtrar el DataFrame para obtener solo las filas donde el género está presente
-    filtered_df = df_games[df_games[genero] == True]
-    if filtered_df.empty:
-        return {"message": "El género solicitado no está presente en los datos"}
-    # Supongo que tienes un DataFrame df_genres y df_items definidos en otro lugar del código
-    # Realizar un inner join entre df_genres y df_items usando 'id' como clave
-    merged_df = df_genres.merge(df_items, left_on='id', right_on='item_id', how='inner')
-    # Realizar otro inner join con filtered_df usando 'id' como clave
-    final_df = merged_df.merge(filtered_df, on='id', how='inner')
-    # Calcular la suma de las horas jugadas por año
-    playtime_by_year = final_df.groupby(final_df['release_date'].dt.year)['playtime_forever'].sum()
-    # Encontrar el año con más horas jugadas
-    year_with_most_playtime = playtime_by_year.idxmax().item()  # Convierte a tipo de dato nativo
-    return {f"Año con mas horas para el genero {genero}": year_with_most_playtime}
 
 @app.get("/playtime-genre/{genero}")
 async def PlayTimeGenre(genero: str):

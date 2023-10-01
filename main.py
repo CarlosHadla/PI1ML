@@ -140,7 +140,7 @@ async def sentiment_analysis(anio: int):
 }
     return result
 
-@app.get("/sentiment-analysis/{id_producto}")
+@app.get("/recomendacion_juego/{id_producto}")
 async def recomendacion_juego(id_producto, num_recomendaciones=5):
     # Obtener el vector de géneros del juego de entrada
     juego_vector = df_ml[df_ml['id'] == id_producto].iloc[:, 3:].values.reshape(1, -1)

@@ -39,7 +39,7 @@ async def PlayTimeGenre(genero: str):
     playtime_by_year = final_df.groupby(final_df['release_date'].dt.year)['playtime_forever'].sum()
     # Encontrar el año con más horas jugadas
     year_with_most_playtime = playtime_by_year.idxmax().item()  # Convierte a tipo de dato nativo
-    return year_with_most_playtime
+    return {f"Año de lanzamiento con más horas jugadas para Género {genero}: {year_with_most_playtime}"}
 
 @app.get("/user-for-genre/{genero}")
 async def UserForGenre(genero: str):

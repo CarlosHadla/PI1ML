@@ -7,7 +7,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 df_items = pd.read_csv('./items.csv')
 df_reviews = pd.read_csv('./reviews_sentiment_analysis.csv')
 df_genres = pd.read_csv('./games_genres.csv')
-df_games = pd.read_csv('./gamesNoGS.csv', parse_dates=['release_date'])
+df_specs = pd.read_csv('./games_specs.csv')
+df_games = pd.read_csv('./games.csv', parse_dates=['release_date'])
 
 app = FastAPI(
     title="Steam Games Api",
@@ -28,12 +29,14 @@ async def PlayTimeGenre(genero: str):
     if genero not in df_genres.columns:
         no_Genre = ['El genero solicitado no esta presente en los datos']
         return no_Genre
+    #quito las columnas que no voy a usar por que me rompe el render el peso en memmoria con ellas
+    merged_df=df_items.drop(['playtime_forever'],axis=1)
     # Realizar un inner join entre df_genres y df_items usando 'id' como clave
-    merged_df = df_genres.merge(df_items, left_on='id', right_on='item_id', how='inner')
+    merged_df = df_genres.merge(df_items, on='item_id', how='inner')
     # Filtrar por el género deseado
     filtered_df = merged_df[merged_df[genero] == 1]
     # Realizar otro inner join con df_games usando 'id' como clave
-    final_df = filtered_df.merge(df_games, on='id', how='inner')
+    final_df = filtered_df.merge(df_games, on='item_id', how='inner')
     # Calcular la suma de las horas jugadas por año
     playtime_by_year = final_df.groupby(final_df['release_date'].dt.year)['playtime_forever'].sum()
     # Encontrar el año con más horas jugadas
@@ -49,12 +52,14 @@ async def UserForGenre(genero: str):
     if genero not in df_genres.columns:
         no_Genre = ['El genero solicitado no esta presente en los datos']
         return no_Genre
+    #quito las columnas que no voy a usar por que me rompe el render el peso en memmoria con ellas
+    merged_df=df_items.drop(['playtime_forever'],axis=1)
     # Realizar un inner join entre df_genres y df_items usando 'id' como clave
-    merged_df = df_genres.merge(df_items, left_on='id', right_on='item_id', how='inner')
+    merged_df = df_genres.merge(df_items, on='item_id', how='inner')
     # Filtrar por el género deseado
     filtered_df = merged_df[merged_df[genero] == 1]
     # Realizar otro inner join con df_games usando 'id' como clave
-    final_df = filtered_df.merge(df_games, on='id', how='inner')
+    final_df = filtered_df.merge(df_games, on='item_id', how='inner')
     # Calcular la suma de las horas jugadas por usuario y año
     user_year_playtime = final_df.groupby(['user_id', final_df['release_date'].dt.year])['playtime_forever'].sum().reset_index()
     # Excluir el año 1900 de la suma de horas jugadas
@@ -84,7 +89,7 @@ async def UsersRecommend(anio: int):
     # Filtrar las revisiones que cumplen con los criterios de recomendación y análisis de sentimientos
     filtered_reviews = df_reviews[(df_reviews['recommend'] == True) & (df_reviews['sentiment_analysis'] <= 1)]
     # Realizar un inner join entre las revisiones y los juegos usando 'item_id' como clave
-    merged_df = filtered_reviews.merge(df_games, left_on='item_id', right_on='id', how='inner')
+    merged_df = filtered_reviews.merge(df_games,on='item_id', how='inner')
     # Filtrar los juegos que tienen el anio deseado
     filtered_games = merged_df[merged_df['posted'] == anio]
     # Calcular la popularidad de los juegos en función de la cantidad de recomendaciones
@@ -107,7 +112,7 @@ async def UsersNotRecommend(anio: int):
     # Filtrar las revisiones que cumplen con los criterios de recomendación y análisis de sentimientos
     filtered_reviews = df_reviews[(df_reviews['recommend'] == False) & (df_reviews['sentiment_analysis'] == 0)]
     # Realizar un inner join entre las revisiones y los juegos usando 'item_id' como clave
-    merged_df = filtered_reviews.merge(df_games, left_on='item_id', right_on='id', how='inner')
+    merged_df = filtered_reviews.merge(df_games, on='item_id', how='inner')
     # Filtrar los juegos que tienen el anio deseado
     filtered_games = merged_df[merged_df['posted'] == anio]
     # Calcular la popularidad de los juegos en función de la cantidad de recomendaciones
@@ -127,7 +132,7 @@ async def sentiment_analysis(anio: int):
     # Filtrar los juegos del año deseado en df_games
     filtered_games = df_games[df_games['release_date'].dt.year == anio]
     # Obtener los ID de los juegos del anio deseado
-    juegos_del_anio = filtered_games['id'].tolist()
+    juegos_del_anio = filtered_games['item_id'].tolist()
     # Filtrar las revisiones de los juegos del anio deseado en df_reviews
     filtered_reviews = df_reviews[df_reviews['item_id'].isin(juegos_del_anio)]
     # Contar la cantidad de registros de reseñas por análisis de sentimiento
@@ -143,15 +148,17 @@ async def sentiment_analysis(anio: int):
 @app.get("/recomendacion_juego/{id_producto}")
 async def recomendacion_juego(id_producto:int):
     # Verificar si el ID existe en el DataFrame
-    if id_producto not in df_games['id'].values:
-        return "El ID solicitado no pertenece a ningún juego."
-    
-    df = df_games.merge(df_genres, on='id', how='inner')
+    if id_producto not in df_games['item_id'].values:
+        return "El item_id solicitado no pertenece a ningún juego."
+    #armar el df con generos y specs
+    df_gs = df_genres.merge(df_specs, on='item_id', how='inner')
+    #armar el df completo
+    df = df_games.merge(df_gs, on='item_id', how='inner')
     df.fillna(0, inplace=True)
     # Obtener el vector de géneros del juego de entrada
-    juego_vector = df[df['id'] == id_producto].iloc[:, 2:].values.reshape(1, -1)
+    juego_vector = df[df['item_id'] == id_producto].iloc[:, 3:].values.reshape(1, -1)
     # Calcular la similitud del coseno entre el juego de entrada y todos los demás juegos
-    similarity_scores = cosine_similarity(df.iloc[:, 2:], juego_vector)
+    similarity_scores = cosine_similarity(df.iloc[:, 3:], juego_vector)
     # Obtener los índices de los juegos más similares
     similar_indices = similarity_scores.argsort(axis=0)[::-1][:5]
     # Obtener los nombres de los juegos recomendados

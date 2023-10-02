@@ -29,8 +29,6 @@ async def PlayTimeGenre(genero: str):
     if genero not in df_genres.columns:
         no_Genre = ['El genero solicitado no esta presente en los datos']
         return no_Genre
-    #quito las columnas que no voy a usar por que me rompe el render el peso en memmoria con ellas
-    merged_df=df_items.drop(['playtime_forever'],axis=1)
     # Realizar un inner join entre df_genres y df_items usando 'id' como clave
     merged_df = df_genres.merge(df_items, on='item_id', how='inner')
     # Filtrar por el género deseado
@@ -52,8 +50,6 @@ async def UserForGenre(genero: str):
     if genero not in df_genres.columns:
         no_Genre = ['El genero solicitado no esta presente en los datos']
         return no_Genre
-    #quito las columnas que no voy a usar por que me rompe el render el peso en memmoria con ellas
-    merged_df=df_items.drop(['playtime_forever'],axis=1)
     # Realizar un inner join entre df_genres y df_items usando 'id' como clave
     merged_df = df_genres.merge(df_items, on='item_id', how='inner')
     # Filtrar por el género deseado

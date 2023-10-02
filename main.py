@@ -158,25 +158,6 @@ async def recomendacion_juego(id_producto:int):
     recomendaciones = df.iloc[similar_indices.ravel(), :]['app_name'].values.tolist()
     return recomendaciones
 
-@app.get("/recomendacion_juego_por_name/{nombre_producto}")
-async def recomendacion_juego_por_name(nombre_producto:str):
-    # Verificar si el app_name existe en el DataFrame
-    if nombre_producto not in df_games['app_name'].values:
-        return "El nombre_producto solicitado no pertenece a ningún juego."
-    
-    df = df_games.merge(df_genres, on='id', how='inner')
-    df.fillna(0, inplace=True)
-    # Obtener el vector de géneros del juego de entrada
-    juego_vector = df[df['app_name'] == nombre_producto].iloc[:, 2:].values.reshape(1, -1)
-    # Calcular la similitud del coseno entre el juego de entrada y todos los demás juegos
-    similarity_scores = cosine_similarity(df.iloc[:, 2:], juego_vector)
-    # Obtener los índices de los juegos más similares
-    similar_indices = similarity_scores.argsort(axis=0)[::-1][:5]
-    # Obtener los nombres de los juegos recomendados
-    recomendaciones = df.iloc[similar_indices.ravel(), :]['app_name'].values.tolist()
-    return recomendaciones
-
-
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=10000)

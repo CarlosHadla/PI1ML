@@ -126,7 +126,7 @@ async def sentiment_analysis(anio: int):
     un análisis de sentimiento para un año de lanzamiento específico.
     """
     # Filtrar los juegos del año deseado en df_games
-    filtered_games = df_games[df_games['release_date'].dt.year == anio]
+    filtered_games = df_games[df_games['release_date'] == anio]
     # Obtener los ID de los juegos del anio deseado
     juegos_del_anio = filtered_games['item_id'].tolist()
     # Filtrar las revisiones de los juegos del anio deseado en df_reviews

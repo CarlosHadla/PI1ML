@@ -4,11 +4,11 @@ import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 
 
-df_items = pd.read_csv('./items.csv')
+df_items = pd.read_csv('./items_reducido.csv')
 df_reviews = pd.read_csv('./reviews_sentiment_analysis.csv')
 df_genres = pd.read_csv('./games_genres.csv')
 df_specs = pd.read_csv('./games_specs.csv')
-df_games = pd.read_csv('./games.csv', parse_dates=['release_date'])
+df_games = pd.read_csv('./games.csv')
 
 app = FastAPI(
     title="Steam Games Api",
@@ -36,7 +36,7 @@ async def PlayTimeGenre(genero: str):
     # Realizar otro inner join con df_games usando 'id' como clave
     final_df = filtered_df.merge(df_games, on='item_id', how='inner')
     # Calcular la suma de las horas jugadas por año
-    playtime_by_year = final_df.groupby(final_df['release_date'].dt.year)['playtime_forever'].sum()
+    playtime_by_year = final_df.groupby(final_df['release_date'])['playtime_forever'].sum()
     # Encontrar el año con más horas jugadas
     year_with_most_playtime = playtime_by_year.idxmax().item()  # Convierte a tipo de dato nativo
     return {f"Año de lanzamiento con más horas jugadas para Género {genero}: {year_with_most_playtime}"}
@@ -57,7 +57,7 @@ async def UserForGenre(genero: str):
     # Realizar otro inner join con df_games usando 'id' como clave
     final_df = filtered_df.merge(df_games, on='item_id', how='inner')
     # Calcular la suma de las horas jugadas por usuario y año
-    user_year_playtime = final_df.groupby(['user_id', final_df['release_date'].dt.year])['playtime_forever'].sum().reset_index()
+    user_year_playtime = final_df.groupby(['user_id', final_df['release_date']])['playtime_forever'].sum().reset_index()
     # Excluir el año 1900 de la suma de horas jugadas
     user_year_playtime = user_year_playtime[user_year_playtime['release_date'] != 1900]
     # Encontrar el usuario con más horas jugadas para el género

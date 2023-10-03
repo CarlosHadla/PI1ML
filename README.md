@@ -36,5 +36,5 @@ Carlos Hadla
 ## Enlaces Importantes
 
 - [Segundo repositorio con los jupyter notebook y funciones](https://github.com/CarlosHadla/archivosExtraP1ML)
-- [Video del proyecto](youtube.com)
+- [Video del proyecto](https://drive.google.com/drive/u/1/folders/1o4x9YurGVyBrH2XKTDl0ijj0n6yxuu4z)
 - [Api en Render](https://piml-efug.onrender.com/docs)

@@ -1,4 +1,4 @@
-# README del Proyecto - Sistema de Recomendación de Videojuegos para Steam
+# Sistema de Recomendación de Videojuegos para Steam
 
 Este README proporciona una descripción detallada de un proyecto de Machine Learning Operations (MLOps) para crear un sistema de recomendación de videojuegos en la plataforma Steam. El proyecto se realizó asumiendo el rol de un MLOps Engineer.
 
